@@ -1,0 +1,379 @@
+  <!DOCTYPE html>
+  <meta charset="utf-8">
+
+  <head>
+  <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+  <script type="text/javascript" src="d3.min.js"></script>
+  <script src="jquery.tipsy.js"></script>
+    <link type="text/css" href="tipsy.css" rel="stylesheet"  />
+  <style>
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+
+    .axis {
+        font: 12px sans-serif;
+    }
+
+    .axis path,
+    .axis line {
+      fill: none;
+        stroke: #606060;
+        shape-rendering: crispEdges;
+    }
+     
+    #xaxis .domain {
+      fill:none;
+      stroke:#606060;
+    }
+    #xaxis text, #yaxis text {
+      font-size: 12px;
+    }
+    .path {
+        fill: none;
+        stroke: #646464;
+        stroke-width:1px;
+        stroke-dasharray: 2,2;
+        stroke-linejoin: round;
+    }
+    .data-point-female {
+      stroke: #fe0001;
+      stroke-width: 2;
+      fill: #fe0001;
+    }
+    .data-point-male {
+      stroke: #008000;
+      stroke-width: 2;
+      fill: #008000;
+    }
+    #header {
+      border: 1px solid rgb(96, 96, 96);
+        width: 800px;
+        height: 30px;
+        margin: 0 auto;
+        margin-bottom: 10px;
+        text-align: center;
+        padding: 10px 0px 0px 0px;
+        font-weight: 700;
+        color: #080808;
+        background-color: #9CBD92;
+    }
+    #model-chart {
+      border: 1px solid rgb(96, 96, 96);
+      background-color: #EFEFEF;
+        width: 800px;
+        height: 600px;
+        margin: 0 auto;
+    }
+
+  </style>
+  </head>
+
+  <body>
+    <!-- <div id="header">
+      ANALYTIC DASHBOARD
+    </div> -->
+    <!-- <div id="model-chart"></div> -->  
+  </body>
+
+
+  <script>
+var dataset = [{model:"46+", population:45, male:15, dslrm:6, female:20, dslrw:3},
+               {model:"31-45", population:45, male:25, dslrm:12, female:9, dslrw:10},
+               {model:"18-30", population:45, male:10, dslrm:6, female:5, dslrw:9}
+              ];
+
+  // setup conventional margin, see http://bl.ocks.org/mbostock/3019563
+  var margin = {top: 20, right: 30, bottom: 30, left: 60},
+      width = 700 - margin.left - margin.right,
+      height = 700 - margin.top - margin.bottom;
+
+  // accessor functions for the 4 values
+  var model = function(d) { return d.model; };
+  var population = function(d) { return d.population; };
+  var male = function(d) { return d.male; };
+  var dslrm = function(d) { return d.dslrm; }
+  var female = function(d) { return d.female; };
+  var dslrw = function(d) { return d.dslrw; }
+  var valueObject = function(d) { return [{name:"male", value: male(d)}, {name: "female", value: female(d)}]; };
+  //var linemaleObject = function(d) { return [{name:"dslrm", value: dslrm(d)}, {name: "dslrw", value: dslrw(d)}]; };
+  var linemaleObject = [ { model:"46+",   "dslrm":3},  { model:"31-45",  "dslrm":5},
+                  { model:"18-30", "dslrm":2}];
+ 
+  var color = d3.scale.ordinal()
+    .domain(["male","female"])
+    .range(["#3182bd","#e6550d"]);
+
+  var xScaleTop = d3.scale
+            .linear()
+            .domain([0,20])
+            .range([0,680]);
+
+  var x0 = d3.scale.ordinal()
+      .rangeRoundBands([0, width], .5)
+      .domain(dataset.map(model)); // use the model for the xAxis
+
+  var x1 = d3.scale.ordinal()
+      .domain(["male","female"])
+      .rangeRoundBands([0, x0.rangeBand()]);
+
+  var y = d3.scale.linear()
+      .range([height, 0])
+      .domain([0, 45]); //d3.max(dataset.map(population))]); // use the population for calculating the maximum value
+  
+  var topxTickVal = d3.range(30).map(function(d,i){
+                
+                if(i>0){ return i*2; }
+                else if(i===0){ return "20";}
+            });
+
+  var topxAxis = d3.svg.axis();
+                topxAxis.orient('bottom')
+                .scale(xScaleTop)
+                .tickValues(topxTickVal);
+
+ var xAxis = d3.svg.axis()
+      .scale(x0)
+      .orient("bottom");
+  
+  var yAxis = d3.svg.axis()
+      .scale(y).tickSize(4)
+      .orient("right");
+  
+  var svg = d3.select("body").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+      .attr("transform", "translate(700,30) rotate(90)");
+
+  svg.append('g')
+      .attr("class", "topx axis")
+      .attr("transform", "translate(0,650) rotate(-90)")
+      .call(topxAxis);
+
+  svg.append("g").append("text")
+          .attr("transform", "translate(480," + height + ") rotate(-90)")
+          .attr("y", -490)
+          .attr("x", 490)
+          .style({'text-anchor': 'end','font-weight': '600','fill':'#606060'})
+          .text("Day Since Last Recharge");
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  svg.append("g").append("text")
+          .attr("transform", "translate(100, 740) rotate(180)")
+          .attr("y", 50)
+          .attr("x", -150)
+          .attr("dy", ".71em")
+          .style({'text-anchor': 'end', 'font-weight': '600','fill':'#434348'})
+          .text("Age Group");
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .attr("transform", "translate(610,0)")
+      .call(yAxis)
+      .selectAll("text")
+      .style("text-anchor", "start")
+      .attr("dx", "-.9em")
+      .attr("dy", ".99em")
+      .attr("transform", "rotate(-90)" );
+    /*.append("text")
+      .attr("transform", "rotate(90)")
+      .attr("y", 6)
+      .attr("dy", ".71em");*/
+
+  svg.append("g").append("text")
+          .attr("transform", "translate(600," + height + ") rotate(-90)")
+          .attr("y", 50)
+          .attr("x", 450)
+          .style({'text-anchor': 'end','font-weight': '600','fill':'#606060'})
+          .text("Average Recharge Amount ($)");
+      
+
+  var models = svg.selectAll(".model")
+      .data(dataset)
+      .enter()
+    .append("g")
+      .attr("class", "model")
+      .attr("transform", function(d) { return "translate(" + x0(model(d)) + ",0)"; });
+
+  models.selectAll("rect")
+      .data(valueObject)
+      .enter()
+    .append("rect")
+      .attr("width", x1.rangeBand())
+      .attr("x", function(d) { return x1(d.name); })
+      .attr("y", function(d) { return y(d.value); })
+      .attr("height", function(d) { return height - y(d.value); })
+      .attr("fill", function(d) { return color(d.name); });
+
+  var lineFunctionmale = d3.svg.line()
+                          .x(function(d) { return xScaleTop(d.dslrm); })
+                          .y(function(d) { return x0(d.model); })
+                         .interpolate("cardinal");
+                         //.interpolate("basis");
+    var lineChartmale = svg.append('path')
+                          .transition()
+                          .delay(500)
+                          .attr("x",320)
+                          .ease("elastic")
+                          .duration(1000)
+                            .attr('d', lineFunctionmale(dataset))
+                            .attr("transform", "translate(25,650) rotate(-90)")
+                            .attr('stroke', 'green')
+                            .attr('stroke-width', 1.5).attr('fill', 'none');
+
+    var lineFunctionfemale = d3.svg.line()
+                          .x(function(d) { return xScaleTop(d.dslrw); })
+                          .y(function(d) { return x0(d.model); })
+                         //.interpolate("basis");
+                         .interpolate("cardinal");
+    var lineChartfemale = svg.append('path')
+                            .transition()
+                            .delay(500)
+                            .attr("x",320)
+                            .ease("elastic")
+                            .duration(1000)
+                              .attr('d', lineFunctionfemale(dataset))
+                              .attr("transform", "translate(65,650) rotate(-90)")
+                              .attr('stroke', 'red')
+                              .attr('stroke-width', 1.5).attr('fill', 'none');
+
+  var dataCirclesGroup = null,transitionDuration = 3000;
+  var maxDataPointsForDots = 6;
+  var pointRadius = 4;
+
+  if (!dataCirclesGroup) {
+    dataCirclesGroup = svg.append('svg:g');
+  }
+
+  var circles = dataCirclesGroup.selectAll('.data-point')
+    .data(dataset);
+
+  circles
+    .enter()
+      .append('svg:circle')
+        .attr("transform", "translate(65,650) rotate(-90)")
+        .attr('class', 'data-point-female')
+        .style('opacity', 1e-6)
+        .attr('cx', function(d,i) { return xScaleTop(d.dslrw) })
+        .attr('cy', function(d) { return x0(d.model) })
+        .attr('r', function() { return (dataset.length <= maxDataPointsForDots) ? pointRadius : 0 })
+        
+      .transition()
+      .delay(3000)
+      .duration(transitionDuration)
+        .style('opacity', 1)
+        .attr('cx', function(d,i) { return xScaleTop(d.dslrw) })
+        .attr('cy', function(d) { return x0(d.model) });
+
+  circles
+    .transition()
+    .duration(transitionDuration)
+      .attr('cx', function(d,i) { return xScaleTop(d.dslrw) })
+      .attr('cy', function(d) { return x0(d.model) })
+      .attr('r', function() { return (dataset.length <= maxDataPointsForDots) ? pointRadius : 0 })
+      .style('opacity', 1);
+
+  circles
+    .exit()
+      .transition()
+      .duration(transitionDuration)
+        // Leave the cx transition off. Allowing the points to fall where they lie is best.
+        //.attr('cx', function(d, i) { return xScale(i) })
+        .attr('cy', function() { return y(0) })
+        .style("opacity", 1e-6)
+        .remove();
+
+  // Male Circles
+
+  circles
+    .enter()
+      .append('svg:circle')
+        .attr("transform", "translate(25,650) rotate(-90)")
+        .attr('class', 'data-point-male')
+        .style('opacity', 1e-6)
+        .attr('cx', function(d,i) { return xScaleTop(d.dslrm) })
+        .attr('cy', function(d) { return x0(d.model) })
+        .attr('r', function() { return (dataset.length <= maxDataPointsForDots) ? pointRadius : 0 })
+        
+      .transition()
+      .delay(3000)
+      .duration(transitionDuration)
+        .style('opacity', 1)
+        .attr('cx', function(d,i) { return xScaleTop(d.dslrm) })
+        .attr('cy', function(d) { return x0(d.model) });
+
+  circles
+    .transition()
+    .duration(transitionDuration)
+      .attr('cx', function(d,i) { return xScaleTop(d.dslrm) })
+      .attr('cy', function(d) { return x0(d.model) })
+      .attr('r', function() { return (dataset.length <= maxDataPointsForDots) ? pointRadius : 0 })
+      .style('opacity', 1);
+
+  circles
+    .exit()
+      .transition()
+      .duration(transitionDuration)
+        // Leave the cx transition off. Allowing the points to fall where they lie is best.
+        //.attr('cx', function(d, i) { return xScale(i) })
+        .attr('cy', function() { return y(0) })
+        .style("opacity", 1e-6)
+        .remove();
+
+  $('.data-point-male').tipsy({ 
+        gravity: 'w', 
+        html: true, 
+        title: function() {
+          var d = this.__data__;
+    //var pDate = d.date;
+    console.log('Date: '+d.dslrm)
+          return 'Day Since Last Recharge: ' + d.dslrm+
+                '<br> Average Recharge Amount($): '+d.male; 
+        }
+  });
+
+  $('.data-point-female').tipsy({
+    gravity: 'w', 
+    html: true, 
+    title: function() {
+        var d = this.__data__;
+        // console.log('Date: '+d.dslrw)
+        /*return '<div style="color: red">Day Since Last Recharge: ' + d.dslrw+
+                '<br> Average Recharge Amount ($): '+d.female+"</div>";*/
+        return 'Day Since Last Recharge: ' + d.dslrw+
+                '<br> Average Recharge Amount($): '+d.female; 
+    }
+  });
+
+  var legend = svg.selectAll(".legend")
+      .data(["male","female"])
+    .enter().append("g")
+      .attr("class", "legend")
+      .attr("transform", function(d, i) { 
+                          if(i<=0)
+                            return "translate(60, 600) rotate(-90)";
+                          else
+                            return "translate(80," + i * 600 + ") rotate(-90)"; });
+
+  legend.append("rect")
+      .attr("x", width - 65)
+      .attr("width", 18)
+      .attr("height", 18)
+      .style("fill", color);
+
+  legend.append("text")
+      .attr("x", width - 40)
+      .attr("y", 9)
+      .attr("dy", ".25em")
+      .style("text-anchor", "start")
+      .text(function(d) { return d; });
+</script>
+</html>
