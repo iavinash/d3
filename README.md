@@ -1,9 +1,10 @@
-D3 Example
+**D3 Example**
+
+Aurthor: **Avinash Mishra**
 ==============
 
 Simple Charts
 --------------
 
-**Avinash Mishra**
 
     d3.select("body").append("svg");
