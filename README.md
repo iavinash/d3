@@ -1,7 +1,5 @@
 **D3 Example**
 
-Aurthor: **Avinash Mishra**
-==============
 
 Simple Charts
 --------------
