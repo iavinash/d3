@@ -1,8 +1,5 @@
-**D3 Example**
+# D3 Example
 
-
-Simple Charts
---------------
-
+## Simple Charts
 
     d3.select("body").append("svg");
